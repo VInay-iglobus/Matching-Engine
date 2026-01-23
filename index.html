@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume-JD Matcher | AI-Powered Matching Engine</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <!-- External Stylesheet -->
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <!-- LOGIN PAGE -->
+    <div class="login-container" id="loginPage">
+        <div class="login-box">
+            <div class="login-header">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-bottom: 1rem;">
+                    <img src="/iGLOBUS.logo.png" alt="iGLOBUS.logo" style="height: 100px; width: auto; display: block;">
+                    <h1 style="margin: 0; color: white;">Matcher</h1>
+                </div>
+                <p style="color: white;">AI-Powered Resume Matching</p>
+            </div>
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div id="loginMessage" class="form-message"></div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" id="loginEmail" class="form-input" placeholder="your@email.com" value="test@test.com" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" value="test123" required>
+                </div>
+                <button type="submit" class="form-submit" id="loginSubmitBtn">Sign In</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN APP -->
+    <div class="app-hidden" id="mainApp">
+        <div class="navbar">
+            <div class="navbar-content">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <img src="/iGLOBUS.logo.PNG" alt="iGLOBUS.logo" style="height: 100px; width: auto; display: block;">
+                    <div class="navbar-brand">Matcher</div>
+                </div>
+                <div class="user-info">
+                    <span class="user-name" id="userNameDisplay">User</span>
+                    <button class="logout-btn" onclick="handleLogout()">Logout</button>
+                </div>
+            </div>
+        </div>
+        <!-- ============================================
+                COLLAPSIBLE WEIGHTS SIDEBAR
+            ============================================ -->
+
+        <!-- SIDEBAR OVERLAY (for closing when clicking outside) -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeWeightsSidebar()"></div>
+
+        <!-- WEIGHTS SIDEBAR (Hidden by default) -->
+        <aside class="weights-sidebar" id="weightsSidebar">
+            <div class="weights-header">
+                <div class="weights-header-content">
+                    <span class="weights-header-icon">⚙️</span>
+                    <h3>Match Weights</h3>
+                </div>
+                <button class="close-sidebar-btn" onclick="closeWeightsSidebar()">✕</button>
+            </div>
+            <div class="total-weight" id="totalWeightContainer">
+                <div class="total-weight-label">Total Weight</div>
+                <div class="total-weight-value" id="totalWeightValue">100</div>
+            </div>
+
+            <!-- EXPERIENCE WEIGHT -->
+            <div class="weight-control">
+                <div class="weight-label">
+                    <span class="weight-name">
+                        <span class="weight-icon">📌</span>
+                        Experience
+                    </span>
+                    <span class="weight-value" id="experienceValueDisplay">35</span>
+                </div>
+                <div class="weight-info" id="experienceInfo">Max: 100</div>
+                <div class="weight-slider-container">
+                    <input type="range" class="weight-slider" id="experienceSlider" 
+                        min="0" max="10" step="1" value="3.5" data-type="experience">
+                    <div class="slider-labels">
+                       <!--<span>10</span><span>20</span><span>30</span><span>40</span><span>50</span>
+                        <span>60</span><span>70</span><span>80</span><span>90</span><span>100</span>-->
+                    </div>
+                </div>
+            </div>
+
+            <!-- EDUCATION WEIGHT -->
+            <div class="weight-control">
+                <div class="weight-label">
+                    <span class="weight-name">
+                        <span class="weight-icon">🎓</span>
+                        Education
+                    </span>
+                    <span class="weight-value" id="educationValueDisplay">25</span>
+                </div>
+                <div class="weight-info" id="educationInfo">Max: 65</div>
+                <div class="weight-slider-container">
+                    <input type="range" class="weight-slider" id="educationSlider" 
+                        min="0" max="10" step="1" value="2.5" data-type="education">
+                    <div class="slider-labels">
+                        <!--<span>10</span><span>20</span><span>30</span><span>40</span><span>50</span>
+                        <span>60</span><span>70</span><span>80</span><span>90</span><span>100</span>-->
+                    </div>
+                </div>
+            </div>
+
+            <!-- SKILLS WEIGHT -->
+            <div class="weight-control">
+                <div class="weight-label">
+                    <span class="weight-name">
+                        <span class="weight-icon">💻</span>
+                        Skills
+                    </span>
+                    <span class="weight-value" id="skillsValueDisplay">40</span>
+                </div>
+                <div class="weight-info" id="skillsInfo">Max: 40</div>
+                <div class="weight-slider-container">
+                    <input type="range" class="weight-slider" id="skillsSlider" 
+                        min="0" max="10" step="1" value="4" data-type="skills">
+                    <div class="slider-labels">
+                        <!--<span>10</span><span>20</span><span>30</span><span>40</span><span>50</span>
+                        <span>60</span><span>70</span><span>80</span><span>90</span><span>100</span>-->
+                    </div>
+                </div>
+            </div>
+
+            <div class="weight-controls">
+                <button class="btn-reset" onclick="resetWeights()">Reset</button>
+                <button class="btn-apply" id="applyBtn" onclick="applyWeights()">Apply</button>
+            </div>
+        </aside>
+
+        <div class="container">
+            <div class="header">
+                <h1>Resume-JD Matcher</h1>
+                <p>Match resumes with job descriptions using AI</p>
+            </div>
+
+            <div class="mode-toggle">
+                <button class="mode-btn active" onclick="switchMode('single')" id="singleModeBtn">📄 Single Match</button>
+                <button class="mode-btn" onclick="switchMode('batch')" id="batchModeBtn">📋 Batch Process</button>
+                <button class="weights-toggle-btn" onclick="toggleWeightsSidebar()" title="Adjust Match Weights">
+                    ⚙️ Weights
+                </button>
+            </div>
+
+            <div class="upload-section single-section">
+                <div style="font-size: 1rem; font-weight: 500; margin-bottom: 1rem;">📋 Upload</div>
+                <div class="upload-grid">
+                    <div>
+                        <div class="upload-card" onclick="triggerFileInput('resume')">
+                            <!--<div style="font-size: 0.1rem; margin-bottom: 0.1rem;">📄</div> -->
+                            <label style="font-weight: 600; display: block; margin-bottom: 0rem;">Resume 📄</label>
+                            <p style="font-size: 0.75rem; color: var(--text-light); margin-bottom: 0.1rem;">PDF, DOCX, or TXT</p>
+                            <button type="button" class="upload-btn">Choose File</button>
+                            <input type="file" id="resumeFile" class="file-input" accept=".pdf,.docx,.doc,.txt" onchange="handleFileSelect('resume', event)">
+                        </div>
+                        <div id="resumeFileInfo" class="file-info" style="display: none;"></div>
+                        <div style="margin-top: 1.5rem;">
+                            <label style="font-weight: 600; display: block; margin-bottom: 0.5rem; font-size: 0.875rem;">Or paste text</label>
+                            <textarea id="resumeText" class="textarea" placeholder="Paste resume text here..."></textarea>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="upload-card" onclick="triggerFileInput('jd')">
+                            <!-- <div style="font-size: 0.1rem; margin-bottom: 0.1rem;">🎯</div> -->
+                            <label style="font-weight: 600; display: block; margin-bottom: 0rem;">Job Description 🎯</label>
+                            <p style="font-size: 0.75rem; color: var(--text-light); margin-bottom: 0.1rem;">PDF, DOCX, or TXT</p>
+                            <button type="button" class="upload-btn">Choose File</button>
+                            <input type="file" id="jdFile" class="file-input" accept=".pdf,.docx,.doc,.txt" onchange="handleFileSelect('jd', event)">
+                        </div>
+                        <div id="jdFileInfo" class="file-info" style="display: none;"></div>
+                        <div style="margin-top: 1.5rem;">
+                            <label style="font-weight: 600; display: block; margin-bottom: 0.5rem; font-size: 0.875rem;">Or paste text</label>
+                            <textarea id="jdText" class="textarea" placeholder="Paste job description here..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-primary" id="analyzeSingleBtn" onclick="analyzeSingle()" disabled>
+                        <span>🔍 Analyze</span>
+                    </button>
+                    <button class="btn-secondary" onclick="clearSingleForm()">Clear</button>
+                </div>
+            </div>
+
+            <!-- BATCH UPLOAD SECTION -->
+            <div class="upload-section batch-section" id="batchSection">
+                <div style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1.5rem;">📋 Batch Process</div>
+                
+                <!-- JD Section -->
+                <div style="margin-bottom: 2rem;">
+                    <label style="font-weight: 600; display: block; margin-bottom: 0.75rem; font-size: 0.95rem;">Job Description (Required)</label>
+                    <div class="upload-card" onclick="triggerFileInput('batch-jd')">
+                        <div style="font-size: 2rem; margin-bottom: 1rem;">🎯</div>
+                        <p style="font-size: 0.75rem; color: var(--text-light); margin-bottom: 1rem;">PDF, DOCX, or TXT</p>
+                        <button type="button" class="upload-btn">Choose File</button>
+                        <input type="file" id="batchJdFile" class="file-input" accept=".pdf,.docx,.doc,.txt" onchange="handleFileSelect('batch-jd', event)">
+                    </div>
+                    <div id="batchJdInfo" class="file-info" style="display: none;"></div>
+                </div>
+
+                <!-- Resumes Section -->
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="font-weight: 600; display: block; margin-bottom: 0.75rem; font-size: 0.95rem;">Resumes (Multiple Files)</label>
+                    <div class="batch-upload-card" onclick="triggerFileInput('batch-resumes')">
+                        <div style="font-size: 2rem; margin-bottom: 1rem;">📄</div>
+                        <label style="font-weight: 600; display: block; margin-bottom: 0.5rem;">Upload Resume Files</label>
+                        <p style="font-size: 0.75rem; color: var(--text-light); margin-bottom: 1rem;">Multiple PDF, DOCX, or TXT files</p>
+                        <button type="button" class="upload-btn">Choose Files</button>
+                        <input type="file" id="batchResumesFile" class="file-input" accept=".pdf,.docx,.doc,.txt" multiple onchange="handleBatchFilesSelect(event)">
+                    </div>
+                    
+                    <div id="batchFilesList" class="file-list" style="display: none;">
+                        <div style="font-weight: 600; margin-bottom: 0.5rem; font-size: 0.875rem;">Selected Files (<span id="fileCount">0</span>)</div>
+                        <div id="filesContainer"></div>
+                    </div>
+                </div>
+
+                <div class="batch-buttons">
+                    <button class="btn-primary" id="processBatchBtn" onclick="processBatch()" disabled>
+                        <span>⚡ Process Batch</span>
+                    </button>
+                    <button class="btn-secondary" onclick="clearBatchForm()">Clear All</button>
+                </div>
+            </div>
+
+            <!-- LOADING OVERLAY (Modal) -->
+            <div class="loading-overlay" id="loadingOverlay">
+                <div class="loading-modal">
+                    <div class="loading-modal-spinner"></div>
+                    <div class="loading-modal-text" id="loadingModalText">Analyzing...</div>
+                    <div class="loading-modal-subtext" id="loadingModalSubtext">
+                        Extracting data and matching resume with job description
+                    </div>
+                    
+                    <!-- BATCH PROGRESS (Hidden by default) -->
+                    <div class="batch-progress-modal" id="batchProgressModal" style="display: none;">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+                        </div>
+                        <div class="progress-text">
+                            <span id="progressCount">0</span>/<span id="progressTotal">0</span> completed
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RESULTS -->
+            <div class="results-section" id="resultsSection">
+                <div id="messageContainer"></div>
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab(0)">📊 Results</button>
+                    <button class="tab-btn" onclick="switchTab(1)">📄 Data</button>
+                </div>
+                
+                <div class="tab-content active">
+                    <h2 style="margin-bottom: 2rem;">Analysis Results</h2>
+                    <div id="scoreGrid" class="score-grid"></div>
+                    <div id="analysisDetails"></div>
+                </div>
+
+                <div class="tab-content">
+                    <h2 style="margin-bottom: 2rem;">Extracted Data</h2>
+                    <div id="extractedData"></div>
+                </div>
+            </div>
+
+            <!-- BATCH RESULTS -->
+            <div class="results-section" id="batchResultsSection" style="display: none;">
+                <div id="batchMessageContainer"></div>
+                <div style="background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 20px 25px rgba(0, 0, 0, 0.1);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h2>Batch Results</h2>
+                        <button class="export-btn" onclick="exportBatchResults()">📥 Export CSV</button>
+                    </div>
+                    <div id="batchResultsTable"></div>
+                </div>
+            </div>
+
+            <button class="btn-secondary" id="backBtn" onclick="goBack()" style="display: none; margin-top: 2rem;">← Back</button>
+
+            <!-- RESULTS PAGE MODAL -->
+            <div class="results-page-modal" id="resultsPageModal">
+                <div class="results-page-container">
+                    <!-- Header with Close Button -->
+                    <div class="results-page-header">
+                        <h1 id="resultsPageTitle">Analysis Results</h1>
+                        <button class="close-results-btn" onclick="closeResultsPage()">✕</button>
+                    </div>
+
+                    <!-- Tabs for Results & Data -->
+                    <div class="results-page-tabs">
+                        <button class="results-page-tab-btn active" onclick="switchResultsPageTab(0)">
+                            📊 Results
+                        </button>
+                        <button class="results-page-tab-btn" onclick="switchResultsPageTab(1)">
+                            📄 Data
+                        </button>
+                    </div>
+
+                    <!-- Results Content -->
+                    <div class="results-page-tab-content active">
+                        <div id="resultsPageMessageContainer"></div>
+                        <div id="resultsPageScoreGrid" class="score-grid"></div>
+                        <div id="resultsPageAnalysisDetails"></div>
+                    </div>
+
+                    <!-- Data Content -->
+                    <div class="results-page-tab-content">
+                        <div id="resultsPageExtractedData"></div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="results-page-actions">
+                        <button class="btn-primary" onclick="startNewAnalysis()">
+                            ← Start New Analysis
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000/api';
+        const DEFAULT_WEIGHTS = {
+            experience: 35,
+            education: 25,
+            skills: 40
+        };
+
+        let currentWeights = { ...DEFAULT_WEIGHTS };
+
+        function toggleWeightsSidebar() {
+            const sidebar = document.getElementById('weightsSidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const toggleBtn = document.querySelector('.weights-toggle-btn');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('show');
+            toggleBtn.classList.toggle('active');
+
+        }
+
+        function closeWeightsSidebar() {
+            const sidebar = document.getElementById('weightsSidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const toggleBtn = document.querySelector('.weights-toggle-btn');
+            sidebar.classList.remove('open');
+            overlay.classList.remove('show');
+            toggleBtn.classList.remove('active');
+        }
+
+        // WEIGHT FUNCTIONS (Same as before)
+        function sliderToWeight(sliderValue) {
+            const value = parseInt(sliderValue) * 10 || 10;
+            return Math.max(10, Math.min(100, value));
+        }
+
+        function getMaxAllowedWeight(type) {
+            const others = Object.entries(currentWeights)
+                .filter(([key]) => key !== type)
+                .reduce((sum, [, val]) => sum + val, 0);
+            return 100 - others;
+        }
+
+        function updateSliderConstraints(type) {
+            const slider = document.getElementById(type + 'Slider');
+            const maxAllowed = getMaxAllowedWeight(type);
+            const maxSliderValue = Math.floor(maxAllowed / 10);
+            
+            slider.max = maxSliderValue;
+    
+            const currentSliderValue = parseInt(slider.value);
+            if (currentSliderValue > maxSliderValue) {
+                slider.value = maxSliderValue;
+                const weight = sliderToWeight(maxSliderValue);
+                currentWeights[type] = weight;
+                document.getElementById(type + 'ValueDisplay').textContent = weight;
+            }
+    
+            document.getElementById(type + 'Info').textContent = `Max: ${maxAllowed}`;
+        }
+
+        function syncWeightDisplay(type, weight) {
+            currentWeights[type] = weight;
+    
+            document.getElementById(type + 'ValueDisplay').textContent = weight;
+            
+            ['experience', 'education', 'skills']
+                .filter(t => t !== type)
+                .forEach(t => updateSliderConstraints(t));
+            
+            updateTotalWeight();
+        }
+
+        function updateTotalWeight() {
+            const total = Object.values(currentWeights)
+                .reduce((sum, val) => sum + val, 0);
+            
+            const elem = document.getElementById('totalWeightValue');
+            const container = document.getElementById('totalWeightContainer');
+            
+            elem.textContent = total;
+            elem.classList.remove('valid');
+            elem.classList.toggle('valid', total === 100);
+            container.classList.remove('valid');
+            container.classList.toggle('valid', total === 100);
+            
+            document.getElementById('applyBtn').disabled = (total !== 100);
+        }
+
+        function resetWeights() {
+            currentWeights = { ...DEFAULT_WEIGHTS };
+            Object.entries(DEFAULT_WEIGHTS).forEach(([type, weight]) => {
+                const slider = document.getElementById(type + 'Slider');
+                slider.value = (weight / 10).toString();
+                document.getElementById(type + 'ValueDisplay').textContent = weight;
+            });
+            
+            ['experience', 'education', 'skills']
+                .forEach(type => updateSliderConstraints(type));
+            
+            updateTotalWeight();
+        }
+
+        function applyWeights() {
+            localStorage.setItem('customWeights', JSON.stringify(currentWeights));
+            alert('✅ Weights Applied!\n\nExperience: ' + currentWeights.experience + 
+                '\nEducation: ' + currentWeights.education + 
+                '\nSkills: ' + currentWeights.skills);
+            closeWeightsSidebar();  // ← Close sidebar after applying
+        }
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.weight-slider').forEach(slider => {
+                slider.addEventListener('input', (e) => {
+                    const type = e.target.dataset.type;
+                    const weight = sliderToWeight(e.target.value);
+                    syncWeightDisplay(type, weight);
+                });
+            });
+            
+            ['experience', 'education', 'skills']
+                .forEach(type => updateSliderConstraints(type));
+            
+            updateTotalWeight();
+        });
+
+
+
+        let currentToken = localStorage.getItem('token');
+        let currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+        let currentResults = null;
+        let currentMode = 'single';
+        let batchFiles = [];
+        let batchJdText = '';
+
+        // Clear invalid tokens on page load (due to SECRET_KEY changes)
+        if (currentToken) {
+            try {
+                // Try to verify token format - if it fails, clear localStorage
+                const parts = currentToken.split('.');
+                if (parts.length !== 3) {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    currentToken = null;
+                    currentUser = {};
+                }
+            } catch (e) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                currentToken = null;
+                currentUser = {};
+            }
+        }
+
+        // Force clear old tokens (fix for SECRET_KEY issue on 2024-01-19)
+        // Comment out after first use once new tokens are created
+        try {
+            const testToken = localStorage.getItem('token');
+            if (testToken && testToken.includes('test@gmail')) {
+                // Old token from test user with gmail - clear it
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                currentToken = null;
+                currentUser = {};
+                console.log('Cleared old test token');
+            }
+        } catch (e) {}
+
+        if (currentToken) showApp();
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const btn = document.getElementById('loginSubmitBtn');
+            const msgDiv = document.getElementById('loginMessage');
+
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    msgDiv.className = 'form-message error';
+                    msgDiv.textContent = data.detail || 'Login failed';
+                    btn.disabled = false;
+                    return;
+                }
+
+                localStorage.setItem('token', data.access_token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                currentToken = data.access_token;
+                currentUser = data.user;
+                showApp();
+            } catch (error) {
+                msgDiv.className = 'form-message error';
+                msgDiv.textContent = 'Connection error: ' + error.message;
+                btn.disabled = false;
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            location.reload();
+        }
+
+        function showApp() {
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('mainApp').classList.remove('app-hidden');
+            document.getElementById('userNameDisplay').textContent = currentUser.name || 'User';
+        }
+
+        function triggerFileInput(type) {
+            const inputId = { 
+                'resume': 'resumeFile', 
+                'jd': 'jdFile',
+                'batch-jd': 'batchJdFile',
+                'batch-resumes': 'batchResumesFile'
+            }[type];
+            if (inputId) document.getElementById(inputId).click();
+        }
+
+        async function handleFileSelect(type, event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            try {
+                const text = await extractTextFromFile(file);
+                
+                if (type === 'resume') {
+                    document.getElementById('resumeText').value = text;
+                    document.getElementById('resumeFileInfo').textContent = `✓ Loaded: ${file.name}`;
+                    document.getElementById('resumeFileInfo').style.display = 'block';
+                } else {
+                    document.getElementById('jdText').value = text;
+                    document.getElementById('jdFileInfo').textContent = `✓ Loaded: ${file.name}`;
+                    document.getElementById('jdFileInfo').style.display = 'block';
+                }
+                updateAnalyzeBtn();
+            } catch (error) {
+                showMessage(`Error reading ${file.name}: ${error.message}`, 'error');
+            }
+        }
+
+        async function extractTextFromFile(file) {
+            const ext = file.name.split('.').pop().toLowerCase();
+
+            if (ext === 'pdf') {
+                return await extractTextFromPDF(file);
+            } else if (['docx', 'doc'].includes(ext)) {
+                return await extractTextFromDOCX(file);
+            } else if (ext === 'txt') {
+                return await file.text();
+            } else {
+                throw new Error(`Unsupported format: ${ext}`);
+            }
+        }
+
+        async function extractTextFromPDF(file) {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+            const pdf = await pdfjsLib.getDocument(await file.arrayBuffer()).promise;
+            let text = '';
+
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const content = await page.getTextContent();
+                text += content.items.map(item => item.str).join(' ') + '\n';
+            }
+
+            return text.trim() || 'No text found in PDF';
+        }
+
+        async function extractTextFromDOCX(file) {
+            const result = await mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() });
+            return result.value || 'No text found in file';
+        }
+
+        function updateAnalyzeBtn() {
+            const hasResume = document.getElementById('resumeText').value.trim().length > 20;
+            const hasJd = document.getElementById('jdText').value.trim().length > 20;
+            document.getElementById('analyzeSingleBtn').disabled = !(hasResume && hasJd);
+        }
+
+        async function analyzeSingle() {
+            const resume = document.getElementById('resumeText').value.trim();
+            const jd = document.getElementById('jdText').value.trim();
+
+            if (!resume || !jd) {
+                showMessage('Please provide both resume and job description', 'error');
+                return;
+            }
+
+            showLoadingOverlay('Analyzing Resume...', 'Extracting data and matching resume with job description');
+
+            try {
+                const weights = localStorage.getItem('customWeights');
+                const customWeights = weights ? JSON.parse(weights) : DEFAULT_WEIGHTS;
+
+                const response = await fetch(`${API_URL}/match/single?token=${currentToken}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ resume_text: resume, jd_text: jd, weights: customWeights  })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    hideLoadingOverlay();
+                    showMessage(data.detail || 'Analysis failed', 'error');
+                    return;
+                }
+
+                currentResults = { ...data.data, resume: data.resume, jd: data.jd };
+                
+                // Display results in NEW RESULTS PAGE
+                displayResultsInPage(data.data);
+                
+                // Hide loading and show results page
+                hideLoadingOverlay();
+                showResultsPage();
+                showResultsPageMessage('✅ Analysis complete!', 'success');
+            } catch (error) {
+                hideLoadingOverlay();
+                showMessage('Error: ' + error.message, 'error');
+            }
+        }
+
+        function displayResults(results) {
+            const { criteriaAnalysis, overallScore, recommendations } = results;
+            const criteria = criteriaAnalysis;
+
+            const scoreHtml = `
+                <div class="score-card">
+                    <div class="score-value">${overallScore}</div>
+                    <div class="score-label">Overall</div>
+                </div>
+                <div class="score-card">
+                    <div class="score-value">${criteria.experienceMatch.percentage}%</div>
+                    <div class="score-label">Experience</div>
+                </div>
+                <div class="score-card">
+                    <div class="score-value">${criteria.educationMatch.percentage}%</div>
+                    <div class="score-label">Education</div>
+                </div>
+                <div class="score-card">
+                    <div class="score-value">${criteria.skillsMatch.percentage}%</div>
+                    <div class="score-label">Skills</div>
+                </div>
+            `;
+
+            document.getElementById('scoreGrid').innerHTML = scoreHtml;
+
+            const details = `
+                <h3 style="margin: 1.5rem 0 1rem 0;">Analysis Details</h3>
+                <div style="margin-bottom: 1.5rem; background: #f9fafb; padding: 1.5rem; border-radius: 8px;">
+                    <h4 style="color: var(--primary); margin-bottom: 0.5rem;">📌 Experience Match</h4>
+                    <p>${criteria.experienceMatch.details}</p>
+                </div>
+                <div style="margin-bottom: 1.5rem; background: #f9fafb; padding: 1.5rem; border-radius: 8px;">
+                    <h4 style="color: var(--primary); margin-bottom: 0.5rem;">🎓 Education Match</h4>
+                    <p>${criteria.educationMatch.details}</p>
+                </div>
+                <div style="margin-bottom: 1.5rem; background: #f9fafb; padding: 1.5rem; border-radius: 8px;">
+                    <h4 style="color: var(--primary); margin-bottom: 0.5rem;">💻 Skills Match</h4>
+                    <p>${criteria.skillsMatch.details}</p>
+                </div>
+                <h3 style="margin: 1.5rem 0 1rem 0;">Recommendations</h3>
+                ${recommendations.map(r => `<p style="margin-bottom: 0.75rem;">💡 ${r}</p>`).join('')}
+            `;
+
+            document.getElementById('analysisDetails').innerHTML = details;
+
+            const resume = currentResults.resume || {};
+            const jd = currentResults.jd || {};
+
+            const dataHtml = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                    <div class="data-section">
+                        <h4>📄 Resume</h4>
+                        <div class="data-item"><strong>Role:</strong> ${resume.role || 'N/A'}</div>
+                        <div class="data-item"><strong>Experience:</strong> ${resume.totalYearsExperience || 0} years</div>
+                        <div class="data-item"><strong>Education:</strong> ${resume.education?.[0]?.degree || 'N/A'}</div>
+                        <div class="data-item"><strong>Skills:</strong> ${resume.skills?.length || 0}</div>
+                        ${resume.skills && resume.skills.length > 0 ? `
+                            <div style="margin-top: 1rem;">
+                                ${resume.skills.map(s => `<span class="skill-tag">${typeof s === 'object' ? s.name : s}</span>`).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div class="data-section">
+                        <h4>🎯 Job Description</h4>
+                        <div class="data-item"><strong>Title:</strong> ${jd.jobTitle || 'N/A'}</div>
+                        <div class="data-item"><strong>Experience Required:</strong> ${jd.minExperienceYears || 0} years</div>
+                        <div class="data-item"><strong>Education Required:</strong> ${jd.requiredEducation || 'N/A'}</div>
+                        <div class="data-item"><strong>Required Skills:</strong> ${jd.requiredSkills?.length || 0}</div>
+                        ${jd.requiredSkills && jd.requiredSkills.length > 0 ? `
+                            <div style="margin-top: 1rem;">
+                                ${jd.requiredSkills.map(s => `<span class="skill-tag">${typeof s === 'object' ? s.name : s}</span>`).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('extractedData').innerHTML = dataHtml;
+        }
+
+        // ===== LOADING OVERLAY FUNCTIONS =====
+        function showLoadingOverlay(title = "Analyzing...", subtitle = "Extracting data and matching resume with job description") {
+            document.getElementById('loadingModalText').textContent = title;
+            document.getElementById('loadingModalSubtext').textContent = subtitle;
+            document.getElementById('loadingOverlay').classList.add('show');
+            document.getElementById('batchProgressModal').style.display = 'none';
+        }
+
+        function hideLoadingOverlay() {
+            document.getElementById('loadingOverlay').classList.remove('show');
+        }
+
+        function showBatchProgressOverlay() {
+            document.getElementById('batchProgressModal').style.display = 'block';
+        }
+
+        function showLoading(text) {
+            showLoadingOverlay(text);
+        }
+
+        function hideLoading() {
+            hideLoadingOverlay();
+        }
+
+        // ===== RESULTS PAGE FUNCTIONS =====
+        function showResultsPage() {
+            document.getElementById('resultsPageModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeResultsPage() {
+            document.getElementById('resultsPageModal').classList.remove('show');
+            document.body.style.overflow = 'auto';
+            goBack();
+        }
+
+        function switchResultsPageTab(index) {
+            const tabs = document.querySelectorAll('.results-page-tab-btn');
+            const contents = document.querySelectorAll('.results-page-tab-content');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            contents.forEach(content => content.classList.remove('active'));
+            
+            tabs[index].classList.add('active');
+            contents[index].classList.add('active');
+        }
+
+        function startNewAnalysis() {
+            closeResultsPage();
+            clearSingleForm();
+            document.getElementById('singleModeBtn').click();
+        }
+
+        function displayResultsInPage(results) {
+            const { criteriaAnalysis, overallScore, recommendations } = results;
+            const criteria = criteriaAnalysis;
+
+            // Score Grid
+            const scoreHtml = `
+                <div class="score-card">
+                    <div class="score-value">${overallScore}</div>
+                    <div class="score-label">Overall</div>
+                </div>
+                <div class="score-card">
+                    <div class="score-value">${criteria.experienceMatch.percentage}%</div>
+                    <div class="score-label">Experience</div>
+                </div>
+                <div class="score-card">
+                    <div class="score-value">${criteria.educationMatch.percentage}%</div>
+                    <div class="score-label">Education</div>
+                </div>
+                <div class="score-card">
+                    <div class="score-value">${criteria.skillsMatch.percentage}%</div>
+                    <div class="score-label">Skills</div>
+                </div>
+            `;
+            document.getElementById('resultsPageScoreGrid').innerHTML = scoreHtml;
+
+            // Analysis Details
+            const details = `
+                <h3 style="margin: 1.5rem 0 1rem 0;">Analysis Details</h3>
+                <div style="margin-bottom: 1.5rem; background: #f9fafb; padding: 1.5rem; border-radius: 8px;">
+                    <h4 style="color: var(--primary); margin-bottom: 0.5rem;">📌 Experience Match</h4>
+                    <p>${criteria.experienceMatch.details}</p>
+                </div>
+                <div style="margin-bottom: 1.5rem; background: #f9fafb; padding: 1.5rem; border-radius: 8px;">
+                    <h4 style="color: var(--primary); margin-bottom: 0.5rem;">🎓 Education Match</h4>
+                    <p>${criteria.educationMatch.details}</p>
+                </div>
+                <div style="margin-bottom: 1.5rem; background: #f9fafb; padding: 1.5rem; border-radius: 8px;">
+                    <h4 style="color: var(--primary); margin-bottom: 0.5rem;">💻 Skills Match</h4>
+                    <p>${criteria.skillsMatch.details}</p>
+                </div>
+                <h3 style="margin: 1.5rem 0 1rem 0;">Recommendations</h3>
+                ${recommendations.map(r => `<p style="margin-bottom: 0.75rem;">💡 ${r}</p>`).join('')}
+            `;
+            document.getElementById('resultsPageAnalysisDetails').innerHTML = details;
+
+            // Data Section
+            const resume = currentResults.resume || {};
+            const jd = currentResults.jd || {};
+
+            const dataHtml = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                    <div class="data-section">
+                        <h4>📄 Resume</h4>
+                        <div class="data-item"><strong>Role:</strong> ${resume.role || 'N/A'}</div>
+                        <div class="data-item"><strong>Experience:</strong> ${resume.totalYearsExperience || 0} years</div>
+                        <div class="data-item"><strong>Education:</strong> ${resume.education?.[0]?.degree || 'N/A'}</div>
+                        <div class="data-item"><strong>Skills:</strong> ${resume.skills?.length || 0}</div>
+                        ${resume.skills && resume.skills.length > 0 ? `
+                            <div style="margin-top: 1rem;">
+                                ${resume.skills.map(s => `<span class="skill-tag">${typeof s === 'object' ? s.name : s}</span>`).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div class="data-section">
+                        <h4>🎯 Job Description</h4>
+                        <div class="data-item"><strong>Title:</strong> ${jd.jobTitle || 'N/A'}</div>
+                        <div class="data-item"><strong>Experience Required:</strong> ${jd.minExperienceYears || 0} years</div>
+                        <div class="data-item"><strong>Education Required:</strong> ${jd.requiredEducation || 'N/A'}</div>
+                        <div class="data-item"><strong>Required Skills:</strong> ${jd.requiredSkills?.length || 0}</div>
+                        ${jd.requiredSkills && jd.requiredSkills.length > 0 ? `
+                            <div style="margin-top: 1rem;">
+                                ${jd.requiredSkills.map(s => `<span class="skill-tag">${typeof s === 'object' ? s.name : s}</span>`).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            document.getElementById('resultsPageExtractedData').innerHTML = dataHtml;
+        }
+
+        function showResultsPageMessage(text, type) {
+            const container = document.getElementById('resultsPageMessageContainer');
+            container.innerHTML = `<div class="message ${type}">${text}</div>`;
+            setTimeout(() => container.innerHTML = '', 5000);
+        }
+
+        function showResults() {
+            document.getElementById('resultsSection').classList.add('show');
+            document.getElementById('backBtn').style.display = 'block';
+            setTimeout(() => document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' }), 100);
+        }
+
+        function showMessage(text, type) {
+            const container = document.getElementById('messageContainer');
+            container.innerHTML = `<div class="message ${type}">${text}</div>`;
+            setTimeout(() => container.innerHTML = '', 5000);
+        }
+
+        function switchTab(index) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.tab-btn')[index].classList.add('active');
+            document.querySelectorAll('.tab-content')[index].classList.add('active');
+        }
+
+        function clearSingleForm() {
+            document.getElementById('resumeText').value = '';
+            document.getElementById('jdText').value = '';
+            document.getElementById('resumeFile').value = '';
+            document.getElementById('jdFile').value = '';
+            document.getElementById('resumeFileInfo').style.display = 'none';
+            document.getElementById('jdFileInfo').style.display = 'none';
+            updateAnalyzeBtn();
+        }
+
+        function goBack() {
+            document.getElementById('resultsSection').classList.remove('show');
+            document.getElementById('batchResultsSection').style.display = 'none';
+            document.getElementById('backBtn').style.display = 'none';
+            document.getElementById('messageContainer').innerHTML = '';
+            document.getElementById('batchMessageContainer').innerHTML = '';
+        }
+
+        function switchMode(mode) {
+            currentMode = mode;
+            const singleSection = document.querySelector('.single-section');
+            const batchSection = document.getElementById('batchSection');
+            const singleModeBtn = document.getElementById('singleModeBtn');
+            const batchModeBtn = document.getElementById('batchModeBtn');
+
+            if (mode === 'single') {
+                singleSection.classList.remove('hide');
+                batchSection.classList.remove('show');
+                singleModeBtn.classList.add('active');
+                batchModeBtn.classList.remove('active');
+            } else {
+                singleSection.classList.add('hide');
+                batchSection.classList.add('show');
+                singleModeBtn.classList.remove('active');
+                batchModeBtn.classList.add('active');
+            }
+            goBack();
+        }
+
+        function handleBatchFilesSelect(event) {
+            const files = Array.from(event.target.files);
+            if (!files.length) return;
+
+            batchFiles = files;
+            updateBatchFilesList();
+            updateProcessBatchBtn();
+        }
+
+        function updateBatchFilesList() {
+            const container = document.getElementById('filesContainer');
+            const listDiv = document.getElementById('batchFilesList');
+            const count = document.getElementById('fileCount');
+
+            if (batchFiles.length === 0) {
+                listDiv.style.display = 'none';
+                return;
+            }
+
+            listDiv.style.display = 'block';
+            count.textContent = batchFiles.length;
+            container.innerHTML = batchFiles.map((file, idx) => `
+                <div class="file-item">
+                    <span class="file-item-name">📄 ${file.name}</span>
+                    <button type="button" class="file-remove-btn" onclick="removeBatchFile(${idx})">Remove</button>
+                </div>
+            `).join('');
+        }
+
+        function removeBatchFile(index) {
+            batchFiles.splice(index, 1);
+            updateBatchFilesList();
+            updateProcessBatchBtn();
+        }
+
+        async function handleFileSelect(type, event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            try {
+                const text = await extractTextFromFile(file);
+                
+                if (type === 'batch-jd') {
+                    batchJdText = text;
+                    document.getElementById('batchJdInfo').textContent = `✓ Loaded: ${file.name}`;
+                    document.getElementById('batchJdInfo').style.display = 'block';
+                } else if (type === 'resume') {
+                    document.getElementById('resumeText').value = text;
+                    document.getElementById('resumeFileInfo').textContent = `✓ Loaded: ${file.name}`;
+                    document.getElementById('resumeFileInfo').style.display = 'block';
+                } else if (type === 'jd') {
+                    document.getElementById('jdText').value = text;
+                    document.getElementById('jdFileInfo').textContent = `✓ Loaded: ${file.name}`;
+                    document.getElementById('jdFileInfo').style.display = 'block';
+                }
+                updateAnalyzeBtn();
+                updateProcessBatchBtn();
+            } catch (error) {
+                showMessage(`Error reading ${file.name}: ${error.message}`, 'error');
+            }
+        }
+
+        function updateProcessBatchBtn() {
+            const hasJd = batchJdText.trim().length > 20;
+            const hasResumes = batchFiles.length > 0;
+            document.getElementById('processBatchBtn').disabled = !(hasJd && hasResumes);
+        }
+
+        async function processBatch() {
+            if (!batchJdText || batchFiles.length === 0) {
+                showBatchMessage('Please provide JD and at least one resume', 'error');
+                return;
+            }
+
+            const weights = localStorage.getItem('customWeights');
+            const customWeights = weights ? JSON.parse(weights) : DEFAULT_WEIGHTS;
+
+            showLoadingOverlay(`Processing ${batchFiles.length} Resumes...`, 'This may take a moment');
+            showBatchProgressOverlay();
+
+            const results = [];
+            let completed = 0;
+            for (let i = 0; i < batchFiles.length; i++) {
+                try {
+                    const resumeText = await extractTextFromFile(batchFiles[i]);
+        
+                    const response = await fetch(`${API_URL}/match/single?token=${currentToken}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            resume_text: resumeText, 
+                            jd_text: batchJdText,
+                            weights: customWeights
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        results.push({
+                            filename: batchFiles[i].name,
+                            overallScore: data.data.overallScore,
+                            experienceScore: data.data.criteriaAnalysis.experienceMatch.percentage,
+                            educationScore: data.data.criteriaAnalysis.educationMatch.percentage,
+                            skillsScore: data.data.criteriaAnalysis.skillsMatch.percentage,
+                            data: data.data,
+                            status: 'success'
+                        });
+                    } else {
+                        results.push({
+                            filename: batchFiles[i].name,
+                            overallScore: 0,
+                            status: 'error',
+                            error: data.detail || 'Analysis failed'
+                        });
+                    }
+                } catch (error) {
+                    results.push({
+                        filename: batchFiles[i].name,
+                        overallScore: 0,
+                        status: 'error',
+                        error: error.message
+                    });
+                }
+
+                completed++;
+                updateBatchProgress(completed, batchFiles.length);
+            }
+
+            hideLoadingOverlay();
+            displayBatchResults(results);
+            showBatchResultsSection();
+            showBatchMessage(`✅ Batch processing complete! ${results.filter(r => r.status === 'success').length}/${results.length} successful`, 'success');
+        }
+
+        function updateBatchProgress(current, total) {
+            const percent = Math.round((current / total) * 100);
+            document.getElementById('progressFill').style.width = percent + '%';
+            document.getElementById('progressCount').textContent = current;
+            document.getElementById('progressTotal').textContent = total;
+        }
+
+        function displayBatchResults(results) {
+            const tableHtml = `
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th>Resume</th>
+                            <th>Overall Score</th>
+                            <th>Experience</th>
+                            <th>Education</th>
+                            <th>Skills</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${results.map((r, idx) => `
+                            <tr>
+                                <td style="font-weight: 500;">${r.filename}</td>
+                                <td><span class="score-badge ${r.overallScore >= 70 ? 'high' : r.overallScore >= 50 ? 'medium' : 'low'}">${r.overallScore}%</span></td>
+                                <td>${r.experienceScore ? r.experienceScore + '%' : '—'}</td>
+                                <td>${r.educationScore ? r.educationScore + '%' : '—'}</td>
+                                <td>${r.skillsScore ? r.skillsScore + '%' : '—'}</td>
+                                <td>
+                                    ${r.status === 'success' ? 
+                                        `<span style="color: var(--success); font-weight: 600;">✓ Success</span>` :
+                                        `<span style="color: var(--danger); font-weight: 600;">✗ ${r.error}</span>`
+                                    }
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            document.getElementById('batchResultsTable').innerHTML = tableHtml;
+            window.batchResults = results;
+        }
+
+        function showBatchResultsSection() {
+            document.getElementById('batchResultsSection').style.display = 'block';
+            document.getElementById('backBtn').style.display = 'block';
+            setTimeout(() => document.getElementById('batchResultsSection').scrollIntoView({ behavior: 'smooth' }), 100);
+        }
+
+        function showBatchMessage(text, type) {
+            const container = document.getElementById('batchMessageContainer');
+            container.innerHTML = `<div class="message ${type}">${text}</div>`;
+            setTimeout(() => container.innerHTML = '', 5000);
+        }
+
+        function clearBatchForm() {
+            batchFiles = [];
+            batchJdText = '';
+            document.getElementById('batchJdFile').value = '';
+            document.getElementById('batchResumesFile').value = '';
+            document.getElementById('batchJdInfo').style.display = 'none';
+            document.getElementById('batchFilesList').style.display = 'none';
+            updateProcessBatchBtn();
+        }
+
+        function exportBatchResults() {
+            if (!window.batchResults || window.batchResults.length === 0) {
+                showBatchMessage('No results to export', 'error');
+                return;
+            }
+
+            const csv = [
+                ['Resume', 'Overall Score', 'Experience', 'Education', 'Skills', 'Status'].join(','),
+                ...window.batchResults.map(r => 
+                    [
+                        `"${r.filename}"`,
+                        r.overallScore,
+                        r.experienceScore || '—',
+                        r.educationScore || '—',
+                        r.skillsScore || '—',
+                        r.status
+                    ].join(',')
+                )
+            ].join('\n');
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `batch-results-${Date.now()}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+            showBatchMessage('✅ Results exported!', 'success');
+        }
+    </script>
+</body>
+</html>
